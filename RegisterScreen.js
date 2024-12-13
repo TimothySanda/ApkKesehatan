@@ -1,51 +1,65 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, Modal, Image } from 'react-native';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from './Firebase Config.js';
-import { useFonts } from 'expo-font';
-import * as SplashScreen from 'expo-splash-screen';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { auth, db } from './Firebase Config.js';
+import { doc, setDoc } from 'firebase/firestore';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default function RegisterScreen({ navigation }) {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   const [secureText, setSecureText] = useState(true);
   const [secureConfirmText, setSecureConfirmText] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
 
-  const [fontsLoaded] = useFonts({
-    'Kanit-SemiBoldItalic': require('./assets/Gaya_Tulisan/Kanit-SemiBoldItalic.ttf'),
-    'RobotoMono': require('./assets/Gaya_Tulisan/RobotoMono-VariableFont_wght.ttf'),
-  });
-
-  useEffect(() => {
-    if (fontsLoaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded]);
-
   const handleRegister = async () => {
+    if (!firstName || !lastName || !email || !password || !confirmPassword) {
+      Alert.alert('Semua field harus diisi');
+      return;
+    }
     if (password !== confirmPassword) {
       Alert.alert('Password tidak cocok');
       return;
     }
 
-    setLoading(true);
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      setModalVisible(true); // Tampilkan modal saat registrasi berhasil
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      await setDoc(doc(db, 'users', user.uid), {
+        firstName,
+        lastName,
+        email,
+      });
+
+      setModalVisible(true);
     } catch (error) {
-      console.error(error.message);
       Alert.alert('Terjadi kesalahan', error.message);
     }
-    setLoading(false);
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Daftar</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="First Name"
+        placeholderTextColor="#aaaaaa"
+        value={firstName}
+        onChangeText={setFirstName}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Last Name"
+        placeholderTextColor="#aaaaaa"
+        value={lastName}
+        onChangeText={setLastName}
+      />
 
       <TextInput
         style={styles.input}
@@ -57,7 +71,7 @@ export default function RegisterScreen({ navigation }) {
 
       <View style={styles.passwordContainer}>
         <TextInput
-          style={[styles.input, styles.passwordInput]}
+          style={styles.inputPassword}
           placeholder="Password"
           placeholderTextColor="#aaaaaa"
           secureTextEntry={secureText}
@@ -66,8 +80,8 @@ export default function RegisterScreen({ navigation }) {
         />
         <TouchableOpacity onPress={() => setSecureText(!secureText)} style={styles.eyeIcon}>
           <MaterialCommunityIcons
-            name={secureText ? "eye-off" : "eye-check-outline"}
-            size={24}
+            name={secureText ? "eye-off" : "eye"}
+            size={25}
             color={secureText ? "red" : "green"}
           />
         </TouchableOpacity>
@@ -75,7 +89,7 @@ export default function RegisterScreen({ navigation }) {
 
       <View style={styles.passwordContainer}>
         <TextInput
-          style={[styles.input, styles.passwordInput]}
+          style={styles.inputPassword}
           placeholder="Konfirmasi Password"
           placeholderTextColor="#aaaaaa"
           secureTextEntry={secureConfirmText}
@@ -84,37 +98,27 @@ export default function RegisterScreen({ navigation }) {
         />
         <TouchableOpacity onPress={() => setSecureConfirmText(!secureConfirmText)} style={styles.eyeIcon}>
           <MaterialCommunityIcons
-            name={secureConfirmText ? "eye-off" : "eye-check-outline"}
-            size={24}
+            name={secureConfirmText ? "eye-off" : "eye"}
+            size={25}
             color={secureConfirmText ? "red" : "green"}
           />
         </TouchableOpacity>
       </View>
 
       <TouchableOpacity style={styles.button} onPress={handleRegister}>
-        <Text style={styles.buttonText}>
-          {loading ? 'Loading...' : 'Daftar'}
-        </Text>
+        <Text style={styles.buttonText}>Daftar</Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.replace('Welcome')}>
-        <Text style={styles.loginText}>
-          Pencet gw kalo mau ke Halaman Awal!!
-        </Text>
+        <Text style={styles.HomeText}>Kembali ke halaman awal...</Text>
       </TouchableOpacity>
 
-
-      <Modal
-        transparent={true}
-        visible={modalVisible}
-        animationType="fade"
-        onRequestClose={() => setModalVisible(false)}
-      >
+      <Modal transparent visible={modalVisible} animationType="slide">
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Daftar Berhasil!</Text>
             <Image
-              source={require('./assets/centang.png')} 
+              source={require('./assets/centang.png')}
               style={styles.checkIcon}
             />
             <TouchableOpacity
@@ -156,18 +160,25 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginVertical: 10,
     fontFamily: 'Kanit-SemiBoldItalic',
+    borderWidth: 1,
+    borderColor: 'red',
+  },
+  inputPassword: {
+    flex: 1,
+    height: 50,
+    backgroundColor: '#333',
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    color: '#fff',
+    fontFamily: 'Kanit-SemiBoldItalic',
+    borderWidth: 1,
+    borderColor: 'red',
   },
   passwordContainer: {
-    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  passwordInput: {
-    flex: 1,
-  },
-  eyeIcon: {
-    position: 'absolute',
-    right: 15,
+    width: '100%',
+    marginVertical: 10,
   },
   button: {
     backgroundColor: '#FF6347',
@@ -181,12 +192,6 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 18,
     fontFamily: 'Kanit-SemiBoldItalic',
-  },
-  loginText: {
-    color: '#ffff',
-    marginTop: 20,
-    textDecorationLine: 'underline',
-    fontFamily: 'RobotoMono'
   },
   modalBackground: {
     flex: 1,
@@ -222,4 +227,13 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
   },
+  eyeIcon: {
+    marginHorizontal: 10,
+  },
+  HomeText: {
+    fontFamily: 'RobotoMono',
+    marginTop: 20,
+    color: '#FFFFFF',
+    textDecorationLine: 'underline',
+  }
 });
