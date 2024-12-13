@@ -10,7 +10,19 @@ export default function LoginScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [secureText, setSecureText] = useState(true);
 
+  // Fungsi validasi email
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleLogin = async () => {
+    // Cek validasi email
+    if (!validateEmail(email)) {
+      Alert.alert('Error', 'Format email tidak valid. Silakan periksa kembali.');
+      return;
+    }
+
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
@@ -18,7 +30,15 @@ export default function LoginScreen({ navigation }) {
       navigation.replace('Main');
     } catch (error) {
       console.error("Login error:", error.message);
-      Alert.alert('YANG BENER AJEE!!', error.message);
+      if (error.code === 'auth/invalid-email') {
+        Alert.alert('Error', 'Format email tidak valid.');
+      } else if (error.code === 'auth/user-not-found') {
+        Alert.alert('Error', 'Pengguna tidak ditemukan.');
+      } else if (error.code === 'auth/wrong-password') {
+        Alert.alert('Error', 'Kata sandi salah.');
+      } else {
+        Alert.alert('Error', 'Terjadi kesalahan. Silakan coba lagi.');
+      }
     }
     setLoading(false);
   };
@@ -31,37 +51,39 @@ export default function LoginScreen({ navigation }) {
           style={styles.image}
         />
       </View>
-      
+
       <TextInput
         style={styles.input}
-        placeholder="Email"
+        placeholder="user123@gmail.com" 
         placeholderTextColor="#aaaaaa"
         value={email}
         onChangeText={setEmail}
       />
-      
+
+      {/* Input Password */}
       <View style={styles.passwordContainer}>
         <TextInput
           style={styles.inputPassword}
-          placeholder="Password"
+          placeholder="min. 6 huruf/angka"
           placeholderTextColor="#aaaaaa"
           secureTextEntry={secureText}
           value={password}
           onChangeText={setPassword}
         />
+
         <TouchableOpacity onPress={() => setSecureText(!secureText)} style={styles.eyeIcon}>
           <MaterialCommunityIcons
             name={secureText ? "eye-off" : "eye-check-outline"}
             size={25}
-            color="#e30d1d"
+            color={secureText ? "red" : "green"}
           />
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+      <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
         <Text style={styles.buttonText}>{loading ? '.....' : 'Masuk'}</Text>
       </TouchableOpacity>
-      
+
       <TouchableOpacity onPress={() => navigation.replace('Register')}>
         <Text style={styles.registerText}>Belum punya akun? Daftar</Text>
       </TouchableOpacity>
