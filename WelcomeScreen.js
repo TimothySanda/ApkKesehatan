@@ -8,13 +8,13 @@ export default function WelcomeScreen({ navigation }) {
         source={require('./assets/darah.png')} 
         style={styles.image} 
       />
-      <Text style={styles.welcomeText}>Selamat datang di <Text style={styles.appName}>BloodBridge</Text></Text>
-      <Text style={styles.subtitle}>Apakah anda mempunyai akun <Text style={styles.appName}>BloodBridge?</Text></Text>
+      <Text style={styles.welcomeText}>SELAMAT DATANG <Text style={styles.appName}>BloodBridge</Text></Text>
+      <Text style={styles.subtitle}>Ayo Daftar di <Text style={styles.appName}>BloodBridge!</Text></Text>
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Login')}>
-        <Text style={styles.buttonText}>Dah ada aku luu?</Text>
+        <Text style={styles.buttonText}>MASUK</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.registerText}>Belum punya akun kan luu!!</Text>
+        <Text style={styles.buttonText}>DAFTAR</Text>
       </TouchableOpacity>
     </View>
   );
@@ -44,30 +44,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginVertical: 10,
   },
-button: {
-  backgroundColor: '#e30d1d',
-  paddingVertical: 12,
-  paddingHorizontal: 30,
-  borderRadius: 5,
-  marginTop: 20,
-  justifyContent: 'center',  
-  alignItems: 'center',      
-  height: 50,                
-},
-buttonText: {
-  color: '#000',
-  fontSize: 18,
-  fontFamily: 'RobotoMono',
-  textAlign: 'center',  
-  alignSelf: 'center',  
-},
-registerText: {
-  color: '#000',
-  fontSize: 18,
-  fontFamily: 'RobotoMono',
-  textAlign: 'center',  
-  alignSelf: 'center', 
-},
+  button: {
+    backgroundColor: '#e30d1d',
+    paddingVertical: 12,
+    width: '80%',
+    borderRadius: 5,
+    marginTop: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 50, 
+  },
+  buttonText: {
+    color: '#fff', 
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
   image: {
     width: 100,
     height: 100,
